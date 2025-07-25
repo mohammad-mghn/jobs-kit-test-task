@@ -1,4 +1,4 @@
-import { yekanBakh } from "@/assets/fonts";
+import { iranYekan, circularStd } from "@/assets/fonts";
 import type { Metadata } from "next";
 
 import "./globals.css";
@@ -40,7 +40,7 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
+		<html lang="fa" dir="rtl">
 			<head>
 				<meta name="robots" content="noindex, nofollow" />
 				<meta name="og:locale" content="fa_IR" />
@@ -75,7 +75,7 @@ export default function RootLayout({
 				/>
 			</head>
 			<body
-				className={`${yekanBakh.variable} font-sans bg-background antialiased`}
+				className={`${iranYekan.variable} ${circularStd.variable} font-main bg-background antialiased`}
 			>
 				{children}
 			</body>

@@ -9,12 +9,24 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
+		"@emotion/react": "^11.14.0",
+		"@emotion/styled": "^11.14.1",
+		"@iconify/react": "^6.0.0",
+		"@mui/icons-material": "^7.2.0",
+		"@mui/material": "^7.2.0",
+		"@tanstack/react-query": "^5.83.0",
 		"autoprefixer": "^10.4.21",
+		"axios": "^1.11.0",
+		"clsx": "^2.1.1",
+		"lodash.debounce": "^4.0.8",
 		"next": "15.4.3",
 		"react": "19.1.0",
-		"react-dom": "19.1.0"
+		"react-dom": "19.1.0",
+		"react-hook-form": "^7.61.0",
+		"tailwind-merge": "^3.3.1"
 	},
 	"devDependencies": {
+		"@types/lodash.debounce": "^4.0.9",
 		"@types/node": "20.11.30",
 		"@types/react": "18.2.62",
 		"@types/react-dom": "18.2.19",
