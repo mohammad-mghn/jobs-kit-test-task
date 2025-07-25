@@ -12,8 +12,22 @@ import JobCard from "@/components/jobs/JobCard";
 import Pagination from "@/components/jobs/Pagination";
 import Layout from "@/components/layout/Layout";
 import { SORT_OPTIONS } from "@/constants/jobs-filters";
-import { fetchJobs, Job, JobsResponse } from "@/utils/api";
+import { Job, JobsResponse } from "@/types/job";
+import { api } from "@/utils/axios";
 import { cn } from "@/utils/cn";
+
+export const fetchJobs = async (
+	params: {
+		page?: number;
+		limit?: number;
+		order?: "ASC" | "DESC";
+		orderBy?: string;
+		expired?: boolean;
+	} = {},
+): Promise<JobsResponse> => {
+	const { data } = await api.get<JobsResponse>("job/all", { params });
+	return data;
+};
 
 export default function JobsPage() {
 	const searchParams = useSearchParams();
