@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { COUNTRIES, JOBS_TYPE_OPTIONS } from "@/constants/jobs-filters";
+import { api } from "@/utils/axios";
 import Button from "../../Button";
 import Layout from "../../layout/Layout";
 import CategoryDropdown from "./CategoryDropdown";
@@ -15,13 +16,13 @@ import JobTypeDropdown from "./JobTypeDropdown";
 import TitleInput from "./TitleInput";
 
 const fetchCategories = async () => {
-	const res = await fetch("https://jobs-kit.com/api/category/category");
-	return res.json();
+	const { data } = await api.get("category/category");
+	return data;
 };
 
 const fetchCountries = async () => {
-	const res = await fetch("https://jobs-kit.com/api/reference/country");
-	return res.json();
+	const { data } = await api.get("reference/country");
+	return data;
 };
 
 interface FilterFormValues {
