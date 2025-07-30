@@ -29,6 +29,9 @@ module.exports = {
 				"iran-yekan": ["var(--font-iran-yekan)", "sans-serif"],
 				"circular-std": ["var(--font-circular-std)", "sans-serif"],
 			},
+			borderColor: {
+				secondary: "#919eab29",
+			},
 			boxShadow: {
 				darker:
 					"0px 0px 2px 0px rgba(0,0,0,0.2), 0px 12px 24px -4px rgba(0,0,0,0.12)",

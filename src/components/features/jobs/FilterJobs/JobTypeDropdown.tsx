@@ -8,9 +8,9 @@ import Menu from "@mui/material/Menu";
 import { useRef } from "react";
 import { UseFormSetValue } from "react-hook-form";
 
-import { JOBS_TYPE_OPTIONS } from "@/constants/jobs-filters";
+import { JOBS_TYPE_OPTIONS } from "@/constants/jobs-filter-options";
 import { cn } from "@/utils/cn";
-import Button from "../../Button";
+import Button from "../../../ui/Button";
 
 interface FilterFormValues {
 	title: string;
@@ -24,38 +24,39 @@ interface FilterFormValues {
 }
 
 interface JobTypeDropdownProps {
+	disabled?: boolean;
 	jobTypeOptions: { value: string; label: string }[];
-	pendingJobTypes: string[];
+	jobTypes: string[];
 	jobTypesDropdownOpen: boolean;
 	handleJobTypesDropdownClick: () => void;
 	handleJobTypesDropdownClose: () => void;
 	handleJobTypesApply: () => void;
 	handleJobTypesReset: () => void;
-	setPendingJobTypes: (types: string[]) => void;
 	setValue: UseFormSetValue<FilterFormValues>;
 }
 
 const JobTypeDropdown = ({
+	disabled,
 	jobTypeOptions,
-	pendingJobTypes,
+	jobTypes,
 	jobTypesDropdownOpen,
 	handleJobTypesDropdownClick,
 	handleJobTypesDropdownClose,
 	handleJobTypesApply,
 	handleJobTypesReset,
-	setPendingJobTypes,
 	setValue,
 }: JobTypeDropdownProps) => {
-	const buttonRef = useRef<Element>();
+	const buttonRef = useRef<HTMLButtonElement>(null);
 
 	const getButtonLabel = () => {
-		if (pendingJobTypes.length === 0) return "نوع شغل";
+		if (jobTypes.length === 0) return "نوع شغل";
 		const firstSelectedType = JOBS_TYPE_OPTIONS.find(
-			(option) => option.value === pendingJobTypes[0],
+			(option) => option.value === jobTypes[0],
 		);
-		if (pendingJobTypes.length === 1) return firstSelectedType?.label;
-		if (pendingJobTypes.length === 2) return `${firstSelectedType?.label}، ...`;
-		else return "نوع شعل ‌: همه";
+		if (jobTypes.length === 1) return firstSelectedType?.label ?? jobTypes[0];
+		if (jobTypes.length === 2)
+			return `${firstSelectedType?.label ?? jobTypes[0]}، ...`;
+		return "نوع شغل: همه";
 	};
 
 	return (
@@ -65,19 +66,17 @@ const JobTypeDropdown = ({
 				variant="outline"
 				size="md"
 				buttonType="button"
+				disabled={disabled}
 				className={cn(
 					"relative py-1 px-2 flex items-center gap-2 text-sm",
-					pendingJobTypes.length > 0
-						? "border-accent text-accent"
-						: "text-neutral",
+					jobTypes.length > 0 ? "border-accent text-accent" : "text-neutral",
 				)}
 				onClick={handleJobTypesDropdownClick}
 			>
 				<span className="text-nowrap">{getButtonLabel()}</span>
-
-				{pendingJobTypes.length > 0 && (
+				{jobTypes.length > 0 && (
 					<Icon
-						icon={"iconamoon:close"}
+						icon="iconamoon:close"
 						width={16}
 						height={16}
 						onClick={(e) => {
@@ -109,13 +108,12 @@ const JobTypeDropdown = ({
 								key={opt.value}
 								control={
 									<Checkbox
-										checked={pendingJobTypes.includes(opt.value)}
+										checked={jobTypes.includes(opt.value)}
 										onChange={(e) => {
 											const checked = e.target.checked;
 											const newTypes = checked
-												? [...pendingJobTypes, opt.value]
-												: pendingJobTypes.filter((v) => v !== opt.value);
-											setPendingJobTypes(newTypes);
+												? [...jobTypes, opt.value]
+												: jobTypes.filter((v) => v !== opt.value);
 											setValue("jobTypes", newTypes);
 										}}
 									/>

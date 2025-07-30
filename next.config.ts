@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
 				port: "",
 				pathname: "/aero-v1/sc/h/**",
 			},
+			{
+				protocol: "https",
+				hostname: "media.glassdoor.com",
+				port: "",
+				pathname: "/sql/**",
+			},
 		],
 	},
 };

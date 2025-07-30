@@ -1,43 +1,35 @@
 "use client";
 
 import { Icon } from "@iconify/react";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { COUNTRIES, JOBS_TYPE_OPTIONS } from "@/constants/jobs-filters";
-import { api } from "@/utils/axios";
-import Button from "../../Button";
-import Layout from "../../layout/Layout";
+import Layout from "@/components/common/layout/Layout";
+import Button from "@/components/ui/Button";
+import CheckboxButton from "@/components/ui/CheckboxButton";
+import Input from "@/components/ui/Input";
+import { COUNTRIES, JOBS_TYPE_OPTIONS } from "@/constants/jobs-filter-options";
+import { jobsService } from "@/services/jobs";
+import { FilterFormValues } from "@/types/job";
 import CategoryDropdown from "./CategoryDropdown";
 import CountryDropdown from "./CountryDropdown";
-import ExpiredInternshipCheckboxes from "./ExpiredInternshipCheckboxes";
 import JobTypeDropdown from "./JobTypeDropdown";
-import TitleInput from "./TitleInput";
 
+// Define query functions outside the component
 const fetchCategories = async () => {
-	const { data } = await api.get("category/category");
-	return data;
+	const res = await jobsService.getCategories();
+	return res.data || [];
 };
 
 const fetchCountries = async () => {
-	const { data } = await api.get("reference/country");
-	return data;
+	const res = await jobsService.getCountries();
+	return res.data || [];
 };
 
-interface FilterFormValues {
-	title: string;
-	categories: string[];
-	subCategories: string[];
-	specialities: string[];
-	countries: string[];
-	expired: boolean;
-	internship: boolean;
-	jobTypes: string[];
-}
-
 interface FilterJobsProps {
-	onFilter: (filters: any) => void;
+	onFilter: (filters: FilterFormValues) => void;
 	initialFilters: FilterFormValues;
 }
 
@@ -47,9 +39,6 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 			defaultValues: initialFilters,
 		});
 	const router = useRouter();
-	const [categories, setCategories] = useState<any[]>([]);
-	const [countries, setCountries] = useState<any[]>([]);
-	const [loading, setLoading] = useState(true);
 	const [openCategory, setOpenCategory] = useState<string | null>(null);
 	const [openSubCategory, setOpenSubCategory] = useState<string | null>(null);
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -57,41 +46,49 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 		null,
 	);
 	const [jobTypesDropdownOpen, setJobTypesDropdownOpen] = useState(false);
-	const [pendingCategories, setPendingCategories] = useState<string[]>(
-		initialFilters.categories,
-	);
-	const [pendingSubCategories, setPendingSubCategories] = useState<string[]>(
-		initialFilters.subCategories,
-	);
-	const [pendingSpecialities, setPendingSpecialities] = useState<string[]>(
-		initialFilters.specialities,
-	);
-	const [pendingJobTypes, setPendingJobTypes] = useState<string[]>(
-		initialFilters.jobTypes,
-	);
+	const [countries, setCountries] = useState<any[]>([]); // State for filtered countries
 
 	const selectedCountryCount = watch("countries")?.length || 0;
-	const selectedCategoryCount =
-		pendingCategories.length +
-		pendingSubCategories.length +
-		pendingSpecialities.length;
 
+	// Fetch categories and countries using React Query
+	const {
+		data: categories = [],
+		isLoading: isCategoriesLoading,
+		isError: isCategoriesError,
+		error: categoriesError,
+	} = useQuery<any[], Error>({
+		queryKey: ["categories"],
+		queryFn: fetchCategories,
+		retry: 2,
+		refetchOnWindowFocus: false,
+	});
+
+	const {
+		data: apiCountries = [],
+		isLoading: isCountriesLoading,
+		isError: isCountriesError,
+		error: countriesError,
+	} = useQuery<string[], Error>({
+		queryKey: ["countries"],
+		queryFn: fetchCountries,
+		retry: 2,
+		refetchOnWindowFocus: false,
+	});
+
+	// Filter COUNTRIES based on apiCountries
 	useEffect(() => {
-		const loadData = async () => {
-			setLoading(true);
-			const [categoryData, countryData] = await Promise.all([
-				fetchCategories(),
-				fetchCountries(),
-			]);
-			setCategories(categoryData || []);
+		if (apiCountries.length > 0) {
 			const supportedCountries = COUNTRIES.filter((country) =>
-				countryData?.includes(country.code),
+				apiCountries.includes(country.code),
 			);
 			setCountries(supportedCountries);
-			setLoading(false);
-		};
-		loadData();
-	}, []);
+		} else {
+			setCountries([]);
+		}
+	}, [apiCountries]);
+
+	const isLoading = isCategoriesLoading || isCountriesLoading;
+	const isError = isCategoriesError || isCountriesError;
 
 	const updateSearchParams = useCallback(
 		(filters: FilterFormValues) => {
@@ -116,23 +113,12 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 	);
 
 	const onSubmit = (data: FilterFormValues) => {
-		const filters = {
-			...data,
-			categories: pendingCategories,
-			subCategories: pendingSubCategories,
-			specialities: pendingSpecialities,
-			jobTypes: pendingJobTypes,
-		};
-		setValue("categories", pendingCategories);
-		setValue("subCategories", pendingSubCategories);
-		setValue("specialities", pendingSpecialities);
-		setValue("jobTypes", pendingJobTypes);
-		onFilter(filters);
-		updateSearchParams(filters);
+		onFilter(data);
+		updateSearchParams(data);
 	};
 
 	const handleParentReset = () => {
-		const resetFilters = {
+		const resetFilters: FilterFormValues = {
 			title: "",
 			categories: [],
 			subCategories: [],
@@ -142,34 +128,22 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 			internship: false,
 			jobTypes: [],
 		};
-		setPendingCategories([]);
-		setPendingSubCategories([]);
-		setPendingSpecialities([]);
-		setPendingJobTypes([]);
 		reset(resetFilters);
 		onFilter(resetFilters);
 		router.replace("?");
 	};
 
 	const handleCategoryApply = () => {
-		setValue("categories", pendingCategories);
-		setValue("subCategories", pendingSubCategories);
-		setValue("specialities", pendingSpecialities);
+		const categories = watch("categories") || [];
+		const subCategories = watch("subCategories") || [];
+		const specialities = watch("specialities") || [];
 		setAnchorEl(null);
-		const filters = {
-			...watch(),
-			categories: pendingCategories,
-			subCategories: pendingSubCategories,
-			specialities: pendingSpecialities,
-		};
+		const filters = { ...watch(), categories, subCategories, specialities };
 		onFilter(filters);
 		updateSearchParams(filters);
 	};
 
 	const handleCategoryReset = () => {
-		setPendingCategories([]);
-		setPendingSubCategories([]);
-		setPendingSpecialities([]);
 		setValue("categories", []);
 		setValue("subCategories", []);
 		setValue("specialities", []);
@@ -192,15 +166,14 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 	};
 
 	const handleJobTypesApply = () => {
-		setValue("jobTypes", pendingJobTypes);
+		const jobTypes = watch("jobTypes") || [];
 		setJobTypesDropdownOpen(false);
-		const filters = { ...watch(), jobTypes: pendingJobTypes };
+		const filters = { ...watch(), jobTypes };
 		onFilter(filters);
 		updateSearchParams(filters);
 	};
 
 	const handleJobTypesReset = () => {
-		setPendingJobTypes([]);
 		setValue("jobTypes", []);
 		setJobTypesDropdownOpen(false);
 		const filters = { ...watch(), jobTypes: [] };
@@ -208,23 +181,40 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 		updateSearchParams(filters);
 	};
 
+	// Trigger submit when 'expired' or 'internship' changes
 	useEffect(() => {
-		if (!loading) {
+		if (!isLoading) {
 			handleSubmit(onSubmit)();
 		}
-	}, [watch("expired"), watch("internship"), loading]);
+	}, [watch("expired"), watch("internship"), isLoading, handleSubmit]);
+
+	if (isError) {
+		return (
+			<Layout className="px-0 sm:px-6 pt-1 sm:pt-[1.3675rem] sm:pb-6">
+				<div className="text-red-500 p-4">
+					خطا در بارگذاری داده‌ها: {(categoriesError || countriesError)?.message}
+				</div>
+			</Layout>
+		);
+	}
 
 	return (
 		<Layout className="px-0 sm:px-6 pt-1 sm:pt-[1.3675rem] sm:pb-6">
 			<form onSubmit={handleSubmit(onSubmit)}>
 				<div className="w-full bg-light-background p-6 shadow-darker sm:rounded-2xl flex flex-col gap-4">
 					<div className="flex items-center gap-4">
-						<TitleInput control={control} />
+						<Input
+							id="title"
+							icon="hugeicons:job-search"
+							placeholder="جستجو عنوان شغل یا شرکت"
+							control={control}
+							disabled={isLoading}
+						/>
 						<CategoryDropdown
 							categories={categories}
-							pendingCategories={pendingCategories}
-							pendingSubCategories={pendingSubCategories}
-							pendingSpecialities={pendingSpecialities}
+							pendingCategories={watch("categories") || []}
+							pendingSubCategories={watch("subCategories") || []}
+							pendingSpecialities={watch("specialities") || []}
 							openCategory={openCategory}
 							openSubCategory={openSubCategory}
 							anchorEl={anchorEl}
@@ -232,13 +222,12 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 								setAnchorEl(document.activeElement as HTMLElement)
 							}
 							handleCategoryDropdownClose={() => setAnchorEl(null)}
-							setPendingCategories={setPendingCategories}
-							setPendingSubCategories={setPendingSubCategories}
-							setPendingSpecialities={setPendingSpecialities}
 							setOpenCategory={setOpenCategory}
 							setOpenSubCategory={setOpenSubCategory}
 							handleCategoryApply={handleCategoryApply}
 							handleCategoryReset={handleCategoryReset}
+							setValue={setValue}
+							disabled={isLoading}
 						/>
 						<CountryDropdown
 							control={control}
@@ -251,11 +240,13 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 							handleCountryDropdownClose={() => setAnchorElCountry(null)}
 							handleCountryReset={handleCountryReset}
 							watch={watch}
+							disabled={isLoading}
 						/>
 						<Button
 							buttonType="submit"
 							size="md"
 							className="hidden md:flex w-1/6"
+							disabled={isLoading}
 						>
 							جستجو در مشاغل
 						</Button>
@@ -268,6 +259,7 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 								buttonType="button"
 								className="md:hidden text-accent w-9 h-9"
 								onClick={handleParentReset}
+								disabled={isLoading}
 							>
 								<Icon icon={"mage:filter"} width={20} height={20} />
 							</Button>
@@ -275,10 +267,21 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 								فیلتر ها :
 							</p>
 							<div className="w-full flex items-center gap-2 flex-nowrap overflow-x-auto scroll-smooth">
-								<ExpiredInternshipCheckboxes control={control} />
+								<CheckboxButton
+									control={control}
+									name="expired"
+									label="منقضی شده"
+									disabled={isLoading}
+								/>
+								<CheckboxButton
+									control={control}
+									name="internship"
+									label="کارآموزی"
+									disabled={isLoading}
+								/>
 								<JobTypeDropdown
 									jobTypeOptions={JOBS_TYPE_OPTIONS}
-									pendingJobTypes={pendingJobTypes}
+									jobTypes={watch("jobTypes") || []}
 									jobTypesDropdownOpen={jobTypesDropdownOpen}
 									handleJobTypesDropdownClick={() =>
 										setJobTypesDropdownOpen(true)
@@ -286,10 +289,10 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 									handleJobTypesDropdownClose={() =>
 										setJobTypesDropdownOpen(false)
 									}
-									setPendingJobTypes={setPendingJobTypes}
-									setValue={setValue}
 									handleJobTypesApply={handleJobTypesApply}
 									handleJobTypesReset={handleJobTypesReset}
+									setValue={setValue}
+									disabled={isLoading}
 								/>
 							</div>
 						</div>
@@ -300,13 +303,13 @@ const FilterJobs = ({ onFilter, initialFilters }: FilterJobsProps) => {
 							className="hidden md:flex border-error py-1 px-2 text-error disabled:text-neutral disabled:border-neutral"
 							onClick={handleParentReset}
 							disabled={
+								isLoading ||
 								!Object.values(watch()).some((value) =>
 									Array.isArray(value) ? value.length > 0 : value,
 								)
 							}
 						>
 							<span className="text-sm text-nowrap">پاک کردن</span>
-
 							<Icon icon={"iconamoon:close"} width={16} height={16} />
 						</Button>
 					</div>

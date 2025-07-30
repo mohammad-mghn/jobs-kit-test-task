@@ -5,15 +5,14 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { useNavbar } from "@/hooks/useNavbar";
+import { NAV_LINKS } from "@/constants/nav";
 import { NavLinkType } from "@/types/navbar";
-import Button from "../Button";
+import Button from "../../ui/Button";
 import DrawerMenu from "./DrawerMenu";
 import NavLink from "./NavLink";
 
 const Navbar = () => {
 	const pathname = usePathname();
-	const { links } = useNavbar();
 
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
@@ -47,7 +46,7 @@ const Navbar = () => {
 
 				{/* Desktop nav */}
 				<nav className="hidden lg:flex items-center gap-x-8">
-					{links.map((link: NavLinkType) => (
+					{NAV_LINKS.map((link: NavLinkType) => (
 						<NavLink
 							key={link.href}
 							label={link.label}

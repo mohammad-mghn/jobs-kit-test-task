@@ -1,6 +1,6 @@
-import React from "react";
+import React, { Suspense } from "react";
 
-import Navbar from "@/components/navbar/Navbar";
+import Navbar from "@/components/common/navbar/Navbar";
 
 export default function MainLayout({
 	children,
@@ -11,7 +11,7 @@ export default function MainLayout({
 		<>
 			<Navbar />
 
-			{children}
+			<Suspense fallback={<>loading</>}>{children}</Suspense>
 		</>
 	);
 }

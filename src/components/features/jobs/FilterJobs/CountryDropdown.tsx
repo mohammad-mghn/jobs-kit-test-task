@@ -8,10 +8,11 @@ import Menu from "@mui/material/Menu";
 import { Controller } from "react-hook-form";
 
 import { cn } from "@/utils/cn";
-import Button from "../../Button";
+import Button from "../../../ui/Button";
 
 interface CountryDropdownProps {
 	control: any;
+	disabled?: boolean;
 	countryList: any[];
 	selectedCountryCount: number;
 	anchorElCountry: HTMLElement | null;
@@ -23,6 +24,7 @@ interface CountryDropdownProps {
 
 const CountryDropdown = ({
 	control,
+	disabled,
 	countryList,
 	selectedCountryCount,
 	anchorElCountry,
@@ -35,9 +37,10 @@ const CountryDropdown = ({
 		<Button
 			variant="muted"
 			size="md"
+			disabled={disabled}
 			buttonType="button"
 			onClick={handleCountryDropdownClick}
-			className="hidden md:flex w-[calc(100%/12*2.5)] relative justify-between"
+			className="hidden md:flex h-12 w-[calc(100%/12*2.5)] relative justify-between"
 		>
 			<div className="flex items-center gap-x-3">
 				<Icon

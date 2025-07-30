@@ -4,11 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { memo, useCallback } from "react";
 
-import { COUNTRIES } from "@/constants/jobs-filters";
-import { PATHS } from "@/constants/routes";
+import { SQUARED_FLAGS_COUNTRIES } from "@/constants/jobs-filter-options";
+import { routes } from "@/constants/routes";
 import { cn } from "@/utils/cn";
-import Button from "../Button";
 import { formatDate } from "@/utils/format-date";
+import Button from "../../ui/Button";
 
 interface Detail {
 	icon?: string;
@@ -22,7 +22,7 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = memo(({ job, expired = false }) => {
-	const country = COUNTRIES.find((c) => c.code === job.country);
+	const country = SQUARED_FLAGS_COUNTRIES.find((c) => c.code === job.country);
 
 	const details: Detail[] = [
 		{ icon: "majesticons:suitcase", value: job.jobType, label: "Job Type" },
@@ -55,7 +55,7 @@ const JobCard: React.FC<JobCardProps> = memo(({ job, expired = false }) => {
 			e.preventDefault();
 			e.stopPropagation();
 
-			const shareUrl = `${window.location.origin}${PATHS.JOB(job.id.toString())}`;
+			const shareUrl = `${window.location.origin}${routes.JOB(job.id.toString())}`;
 			const shareData = {
 				title: job.title,
 				text: `Check out this job opportunity at ${job.company.name}`,
@@ -79,7 +79,7 @@ const JobCard: React.FC<JobCardProps> = memo(({ job, expired = false }) => {
 	return (
 		<div dir="ltr" className="relative h-full">
 			<Link
-				href={PATHS.JOB(job.id.toString())}
+				href={routes.JOB(job.id.toString())}
 				className="h-full bg-light-background px-3 py-6 flex flex-col justify-between gap-y-6 shadow-dark rounded-2xl"
 			>
 				<div className="px-3 space-y-4">
@@ -101,7 +101,7 @@ const JobCard: React.FC<JobCardProps> = memo(({ job, expired = false }) => {
 							{job.title}
 						</h2>
 						<Link
-							href={PATHS.COMPANY(job.company.id.toString())}
+							href={routes.COMPANY(job.company.id.toString())}
 							onClick={(e) => e.stopPropagation()}
 							className="text-base font-semibold text-accent hover:underline"
 						>
@@ -125,9 +125,9 @@ const JobCard: React.FC<JobCardProps> = memo(({ job, expired = false }) => {
 							{icon && <Icon icon={icon} className="flex-shrink-0 w-4 h-4" />}
 							<span
 								className="text-xs truncate capitalize"
-								title={value.toLowerCase()}
+								title={value?.toLowerCase()}
 							>
-								{value.toLowerCase()}
+								{value?.toLowerCase()}
 							</span>
 							<span className="sr-only">{label}</span>
 						</li>

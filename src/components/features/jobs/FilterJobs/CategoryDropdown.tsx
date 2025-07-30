@@ -11,10 +11,13 @@ import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 
 import { cn } from "@/utils/cn";
-import Button from "../../Button";
+import { useMemo } from "react";
+import { UseFormSetValue } from "react-hook-form";
+import Button from "../../../ui/Button";
 
 interface CategoryDropdownProps {
 	categories: any[];
+	disabled?: boolean;
 	pendingCategories: string[];
 	pendingSubCategories: string[];
 	pendingSpecialities: string[];
@@ -23,17 +26,16 @@ interface CategoryDropdownProps {
 	anchorEl: HTMLElement | null;
 	handleCategoryDropdownClick: () => void;
 	handleCategoryDropdownClose: () => void;
-	setPendingCategories: (categories: string[]) => void;
-	setPendingSubCategories: (subCategories: string[]) => void;
-	setPendingSpecialities: (specialities: string[]) => void;
 	setOpenCategory: (slug: string | null) => void;
 	setOpenSubCategory: (slug: string | null) => void;
 	handleCategoryApply: () => void;
 	handleCategoryReset: () => void;
+	setValue: UseFormSetValue<any>;
 }
 
 const CategoryDropdown = ({
 	categories,
+	disabled,
 	pendingCategories,
 	pendingSubCategories,
 	pendingSpecialities,
@@ -42,26 +44,50 @@ const CategoryDropdown = ({
 	anchorEl,
 	handleCategoryDropdownClick,
 	handleCategoryDropdownClose,
-	setPendingCategories,
-	setPendingSubCategories,
-	setPendingSpecialities,
 	setOpenCategory,
 	setOpenSubCategory,
 	handleCategoryApply,
 	handleCategoryReset,
+	setValue,
 }: CategoryDropdownProps) => {
-	const getButtonLabel = () => {
-		if (pendingCategories.length === 0) {
-			return "گروه شغلی";
+	const buttonLabel = useMemo(() => {
+		const selections = [
+			...pendingCategories,
+			...pendingSubCategories,
+			...pendingSpecialities,
+		];
+
+		if (selections.length === 0) return "گروه شغلی";
+
+		if (selections.length >= 2) return `${selections.length} مورد`;
+
+		if (pendingSpecialities.length === 1) {
+			const speciality = categories
+				.flatMap((cat) => cat.subCategories)
+				.flatMap((sub) => sub.specialities)
+				.find((spec) => spec.slug === pendingSpecialities[0]);
+			return speciality?.name ?? pendingSpecialities[0];
 		}
+
+		if (pendingSubCategories.length === 1) {
+			const subCategory = categories
+				.flatMap((cat) => cat.subCategories)
+				.find((sub) => sub.slug === pendingSubCategories[0]);
+			return subCategory?.name ?? pendingSubCategories[0];
+		}
+
 		if (pendingCategories.length === 1) {
-			const selectedCategory = categories.find(
+			const category = categories.find(
 				(cat) => cat.slug === pendingCategories[0],
 			);
-			return selectedCategory ? selectedCategory.name : pendingCategories[0];
+			return category?.name ?? pendingCategories[0];
 		}
-		return `${pendingCategories.length} مورد`;
-	};
+	}, [
+		categories,
+		pendingCategories,
+		pendingSubCategories,
+		pendingSpecialities,
+	]);
 
 	return (
 		<>
@@ -70,6 +96,7 @@ const CategoryDropdown = ({
 				size="md"
 				buttonType="button"
 				onClick={handleCategoryDropdownClick}
+				disabled={disabled}
 				className="hidden md:flex w-[calc(100%/12*2.5)]"
 			>
 				<Icon
@@ -80,11 +107,15 @@ const CategoryDropdown = ({
 				/>
 				<span
 					className={cn(
-						"w-full text-start text-base font-normal",
-						pendingCategories.length === 0 ? "text-neutral" : "text-primary",
+						"w-full text-start text-base font-normal truncate",
+						pendingCategories.length === 0 &&
+							pendingSpecialities.length === 0 &&
+							pendingSubCategories.length === 0
+							? "text-neutral"
+							: "text-primary",
 					)}
 				>
-					{getButtonLabel()}
+					{buttonLabel}
 				</span>
 
 				<Icon
@@ -117,7 +148,8 @@ const CategoryDropdown = ({
 												checked={pendingCategories.includes(cat.slug)}
 												onChange={(e) => {
 													const checked = e.target.checked;
-													setPendingCategories(
+													setValue(
+														"categories",
 														checked
 															? [...pendingCategories, cat.slug]
 															: pendingCategories.filter(
@@ -160,7 +192,8 @@ const CategoryDropdown = ({
 														checked={pendingSubCategories.includes(sub.slug)}
 														onChange={(e) => {
 															const checked = e.target.checked;
-															setPendingSubCategories(
+															setValue(
+																"subCategories",
 																checked
 																	? [...pendingSubCategories, sub.slug]
 																	: pendingSubCategories.filter(
@@ -204,7 +237,8 @@ const CategoryDropdown = ({
 																	)}
 																	onChange={(e) => {
 																		const checked = e.target.checked;
-																		setPendingSpecialities(
+																		setValue(
+																			"specialities",
 																			checked
 																				? [...pendingSpecialities, spec.slug]
 																				: pendingSpecialities.filter(

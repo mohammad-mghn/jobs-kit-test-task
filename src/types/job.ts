@@ -1,3 +1,14 @@
+import { Pagination } from "./pagination";
+
+export type Category = {
+	id: number;
+	name: string;
+	slug: string;
+	order: number;
+};
+
+export type Country = string;
+
 export type Job = {
 	id: number;
 	title: string;
@@ -20,13 +31,7 @@ export type Job = {
 	};
 	country: string;
 	location: string;
-	category: {
-		id: number;
-		name: string;
-		slug: string;
-		icon: string | null;
-		order: number;
-	};
+	category: Category;
 	subCategory: {
 		id: number;
 		name: string;
@@ -46,14 +51,16 @@ export type Job = {
 
 export type JobsResponse = {
 	data: Job[];
-	pagination: {
-		page: number;
-		limit: number;
-		order: string;
-		orderBy: string;
-		total: number;
-		totalPages: number;
-		nextPage: boolean;
-		prevPage: boolean;
-	};
+	pagination: Pagination;
 };
+
+export interface FilterFormValues {
+	title: string;
+	categories: string[];
+	subCategories: string[];
+	specialities: string[];
+	countries: string[];
+	expired: boolean;
+	internship: boolean;
+	jobTypes: string[];
+}

@@ -2,9 +2,9 @@ import { Icon } from "@iconify/react";
 import Drawer from "@mui/material/Drawer";
 import Image from "next/image";
 
-import { useNavbar } from "@/hooks/useNavbar";
+import { NAV_LINKS } from "@/constants/nav";
 import { DrawerNavLinkType } from "@/types/navbar";
-import Button from "../Button";
+import Button from "../../ui/Button";
 import DrawerMenuLink from "./DrawerMenuLink";
 
 interface DrawerMenuProps {
@@ -14,8 +14,6 @@ interface DrawerMenuProps {
 }
 
 const DrawerMenu = ({ pathname, open, onClose }: DrawerMenuProps) => {
-	const { links } = useNavbar();
-
 	return (
 		<Drawer anchor="right" open={open} onClose={onClose}>
 			<div className="w-64 h-full bg-light-background flex flex-col justify-between gap-y-6">
@@ -32,7 +30,7 @@ const DrawerMenu = ({ pathname, open, onClose }: DrawerMenuProps) => {
 
 					{/* Mobile nav */}
 					<nav className="flex flex-col">
-						{links.map((link: DrawerNavLinkType) => (
+						{NAV_LINKS.map((link: DrawerNavLinkType) => (
 							<DrawerMenuLink key={link.href} link={link} pathname={pathname} />
 						))}
 					</nav>

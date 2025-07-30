@@ -1,7 +1,8 @@
-import { iranYekan, circularStd } from "@/assets/fonts";
+import { circularStd, iranYekan } from "@/lib/fonts";
 import type { Metadata } from "next";
 
-import "./globals.css";
+import { ReactQueryProvider } from "@/lib/react-query";
+import "@/styles/globals.css";
 
 export const metadata: Metadata = {
 	title: "جابزکیت - پلتفرم کاریابی بین المللی و دلاری برای ایرانیان",
@@ -77,7 +78,7 @@ export default function RootLayout({
 			<body
 				className={`${iranYekan.variable} ${circularStd.variable} font-main bg-background antialiased`}
 			>
-				{children}
+				<ReactQueryProvider>{children}</ReactQueryProvider>
 			</body>
 		</html>
 	);

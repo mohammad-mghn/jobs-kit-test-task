@@ -1,4 +1,4 @@
-export const PATHS = {
+export const routes = {
 	HOME: "/",
 	JOBS: "/job",
 	JOB: (id: string) => `/job/${id}`,
@@ -7,4 +7,4 @@ export const PATHS = {
 	BLOG: "/blog",
 	ABOUT: "/about-us",
 	CONTACT: "/contact-us",
-};
+} as const;
